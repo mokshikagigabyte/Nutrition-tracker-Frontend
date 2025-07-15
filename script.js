@@ -1,23 +1,52 @@
-// Login Form
-document.getElementById('login-form')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    console.log('Login:', { email, password });
-    window.location.href = 'pantry.html';
-});
-
-// Register Form
+// =================== Register Form ===================
 document.getElementById('register-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    console.log('Register:', { name, email, password });
-    window.location.href = 'index.html';
+
+    fetch('https://nutrition-tracker-backend-4.onrender.com/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert('✅ Registered successfully!');
+        window.location.href = 'index.html';
+    })
+    .catch(err => {
+        console.error('Register error:', err);
+        alert('❌ Registration failed');
+    });
 });
 
-// Pantry Form
+// =================== Login Form ===================
+document.getElementById('login-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    fetch('https://nutrition-tracker-backend-4.onrender.com/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Invalid credentials');
+        return res.json();
+    })
+    .then(data => {
+        alert('✅ Login successful!');
+        window.location.href = 'pantry.html';
+    })
+    .catch(err => {
+        console.error('Login error:', err);
+        alert('❌ Login failed');
+    });
+});
+
+// =================== Pantry Form ===================
 document.getElementById('pantry-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const ingredient = document.getElementById('ingredient').value;
@@ -34,12 +63,13 @@ document.getElementById('pantry-form')?.addEventListener('submit', (e) => {
     e.target.reset();
 });
 
-// Display Pantry Items
+// =================== Display Pantry Items ===================
 function displayPantry() {
     const list = document.getElementById('ingredient-list');
     if (!list) return;
     list.innerHTML = '';
     const pantry = JSON.parse(localStorage.getItem('pantry') || '[]');
+
     pantry.forEach((item, index) => {
         const li = document.createElement('li');
         li.className = 'ingredient-item';
@@ -53,7 +83,6 @@ function displayPantry() {
         list.appendChild(li);
     });
 
-    // Add delete button listeners
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', () => {
             const index = button.getAttribute('data-index');
@@ -62,7 +91,6 @@ function displayPantry() {
     });
 }
 
-// Delete Pantry Item
 function deletePantryItem(index) {
     const pantry = JSON.parse(localStorage.getItem('pantry') || '[]');
     pantry.splice(index, 1);
@@ -70,7 +98,7 @@ function deletePantryItem(index) {
     displayPantry();
 }
 
-// Submit Selected to Recipes
+// =================== Submit Selected to Recipes ===================
 document.getElementById('submit-to-recipes')?.addEventListener('click', () => {
     const pantry = JSON.parse(localStorage.getItem('pantry') || '[]');
     const checkboxes = document.querySelectorAll('.select-item:checked');
@@ -86,7 +114,7 @@ document.getElementById('submit-to-recipes')?.addEventListener('click', () => {
     window.location.href = 'recipes.html';
 });
 
-// Display Selected Ingredients
+// =================== Display Selected Ingredients ===================
 document.addEventListener('DOMContentLoaded', () => {
     displayPantry();
     const recipeList = document.getElementById('recipe-list');
@@ -105,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Fetch Recipes (Connect to backend)
+// =================== Fetch Recipes from Backend ===================
 document.getElementById('fetch-recipes')?.addEventListener('click', async () => {
     const pantry = JSON.parse(localStorage.getItem('selectedIngredients') || '[]');
     const recipeList = document.getElementById('recipe-list');
@@ -117,7 +145,7 @@ document.getElementById('fetch-recipes')?.addEventListener('click', async () => 
     }
 
     try {
-        const response = await fetch('https://nutrition-tracker-backend-1.onrender.com/recipes', {
+        const response = await fetch('https://nutrition-tracker-backend-4.onrender.com/recipes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ingredients: pantry.map(item => `${item.quantity}${item.unit} ${item.ingredient}`) })
