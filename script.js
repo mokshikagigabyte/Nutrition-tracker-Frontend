@@ -53,7 +53,7 @@ function displayPantry() {
         list.appendChild(li);
     });
 
-    // Add event listeners for delete buttons
+    // Add delete button listeners
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', () => {
             const index = button.getAttribute('data-index');
@@ -86,7 +86,7 @@ document.getElementById('submit-to-recipes')?.addEventListener('click', () => {
     window.location.href = 'recipes.html';
 });
 
-// Display Selected Ingredients and Fetch Recipes
+// Display Selected Ingredients
 document.addEventListener('DOMContentLoaded', () => {
     displayPantry();
     const recipeList = document.getElementById('recipe-list');
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Fetch Recipes
+// Fetch Recipes (Connect to backend)
 document.getElementById('fetch-recipes')?.addEventListener('click', async () => {
     const pantry = JSON.parse(localStorage.getItem('selectedIngredients') || '[]');
     const recipeList = document.getElementById('recipe-list');
@@ -116,47 +116,32 @@ document.getElementById('fetch-recipes')?.addEventListener('click', async () => 
         return;
     }
 
-    // Simulate OpenAI API response
-    const mockRecipes = [
-        { name: 'Chicken Stir-Fry', ingredients: ['Chicken Breast', 'Broccoli', 'Rice'], instructions: 'Cook chicken, add broccoli, serve with rice.' },
-        { name: 'Veggie Pasta', ingredients: ['Pasta', 'Tomato', 'Spinach'], instructions: 'Boil pasta, mix with tomato sauce and spinach.' }
-    ];
-
-    const ingredientNames = pantry.map(item => item.ingredient.toLowerCase());
-    mockRecipes.forEach(recipe => {
-        const hasIngredients = recipe.ingredients.some(ing => ingredientNames.includes(ing.toLowerCase()));
-        if (hasIngredients) {
-            const card = document.createElement('div');
-            card.className = 'recipe-card';
-            card.innerHTML = `
-                <h3>${recipe.name}</h3>
-                <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
-                <p><strong>Instructions:</strong> ${recipe.instructions}</p>
-            `;
-            recipeList.appendChild(card);
-        }
-    });
-
     try {
-        const response = await fetch('http://localhost:3000/recipes', {
+        const response = await fetch('https://nutrition-tracker-backend-1.onrender.com/recipes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ingredients: pantry.map(item => `${item.quantity}${item.unit} ${item.ingredient}`) })
         });
+
         const recipes = await response.json();
-        recipes.forEach(recipe => {
-            const card = document.createElement('div');
-            card.className = 'recipe-card';
-            card.innerHTML = `
-                <h3>${recipe.name}</h3>
-                <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
-                <p><strong>Instructions:</strong> ${recipe.instructions}</p>
-            `;
-            recipeList.appendChild(card);
-        });
+
+        if (Array.isArray(recipes)) {
+            recipes.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card';
+                card.innerHTML = `
+                    <h3>${recipe.name}</h3>
+                    <p><strong>Ingredients:</strong> ${recipe.ingredients?.join(', ') || 'Not listed'}</p>
+                    <p><strong>Instructions:</strong> ${recipe.instructions || 'N/A'}</p>
+                `;
+                recipeList.appendChild(card);
+            });
+        } else {
+            recipeList.innerHTML = '<p>No recipes found.</p>';
+        }
+
     } catch (error) {
         console.error('Error fetching recipes:', error);
         recipeList.innerHTML = '<p>Error fetching recipes. Please try again later.</p>';
     }
-
 });
