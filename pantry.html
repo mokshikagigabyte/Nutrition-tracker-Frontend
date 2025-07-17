@@ -13,18 +13,18 @@
         <div class="nav">
             <a href="pantry.html" class="active">Pantry</a>
             <a href="recipes.html">Recipes</a>
-            <a href="index.html">Logout</a>
+            <a href="index.html" id="logout-link">Logout</a>
         </div>
         <div class="pantry-box">
             <h2>Your Pantry</h2>
             <form id="pantry-form">
                 <div class="input-group">
                     <label for="ingredient">Ingredient</label>
-                    <input type="text" id="ingredient" placeholder="e.g., Chicken Breast" required>
+                    <input type="text" id="ingredient" placeholder="e.g., Chicken Breast" required pattern="[A-Za-z\s]+">
                 </div>
                 <div class="input-group">
                     <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" placeholder="e.g., 500" required>
+                    <input type="number" id="quantity" placeholder="e.g., 500" min="1" required>
                     <select id="unit">
                         <option value="g">grams</option>
                         <option value="kg">kg</option>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="input-group">
                     <label for="expiration">Expiration Date (Optional)</label>
-                    <input type="date" id="expiration">
+                    <input type="date" id="expiration" min="">
                 </div>
                 <button type="submit" class="btn">Add Ingredient</button>
             </form>
