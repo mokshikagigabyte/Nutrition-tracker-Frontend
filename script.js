@@ -1,3 +1,44 @@
+// Simulated user database and pantry items using localStorage
+const users = JSON.parse(localStorage.getItem('users')) || {};
+let selectedIngredients = JSON.parse(localStorage.getItem('selectedIngredients')) || [];
+
+// Helper function to save data to localStorage
+function saveToLocalStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+// Update Navigation Link State for Recipes
+function updateRecipesLink() {
+    const recipesLinks = document.querySelectorAll('.nav a[href="recipes.html"]');
+    recipesLinks.forEach(link => {
+        if (selectedIngredients.length === 0) {
+            link.classList.add('disabled');
+            link.style.pointerEvents = 'none';
+            link.title = 'Please select ingredients from the Pantry first';
+        } else {
+            link.classList.remove('disabled');
+            link.style.pointerEvents = 'auto';
+            link.title = '';
+        }
+    });
+}
+
+// Check if user is already logged in and redirect
+function checkAuthAndRedirect() {
+    const currentUser = localStorage.getItem('currentUser');
+    const currentPage = window.location.pathname.split('/').pop();
+    if (currentUser && ['index.html', 'register.html', ''].includes(currentPage)) {
+        window.location.href = 'pantry.html';
+    } else if (!currentUser && !['index.html', 'register.html', ''].includes(currentPage)) {
+        document.body.classList.add('redirecting');
+        alert('Please log in to access this page.');
+        setTimeout(() => { window.location.href = 'index.html'; }, 500);
+    }
+}
+
+// Run auth check on page load
+checkAuthAndRedirect();
+
 // =================== Register Form ===================
 document.getElementById('register-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -6,15 +47,30 @@ document.getElementById('register-form')?.addEventListener('submit', async (e) =
     const password = document.getElementById('password').value;
 
     try {
-        localStorage.setItem('user', JSON.stringify({ name, email }));
-        alert('✅ Registered successfully!');
-        window.location.href = 'index.html';
+        if (users[email]) {
+            alert('❌ Email already registered');
+            return;
+        }
+        users[email] = { name, password };
+        saveToLocalStorage('users', users);
+        localStorage.setItem('currentUser', email); // Auto-login after registration
+        alert('✅ Registered successfully! Redirecting to Pantry...');
+        window.location.href = 'pantry.html';
     } catch (err) {
         console.error(err);
         alert('❌ Registration failed');
     }
 });
-
+if (localStorage.getItem('currentUser') && document.getElementById('user-name')) {
+    const userEmail = localStorage.getItem('currentUser');
+    document.getElementById('user-name').textContent = users[userEmail].name;
+}
+const loginTime = Date.now();
+localStorage.setItem('loginTime', loginTime);
+if (Date.now() - localStorage.getItem('loginTime') > 24 * 60 * 60 * 1000) {
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('loginTime');
+}
 // =================== Login Form ===================
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -22,8 +78,9 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     try {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (user.email === email) {
+        const user = users[email];
+        if (user && user.password === password) {
+            localStorage.setItem('currentUser', email);
             alert('✅ Login successful!');
             window.location.href = 'pantry.html';
         } else {
@@ -31,7 +88,7 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         }
     } catch (err) {
         console.error(err);
-        alert('❌ Login failed');
+        alert('❌ Invalid email or password');
     }
 });
 
@@ -47,7 +104,7 @@ document.getElementById('pantry-form')?.addEventListener('submit', (e) => {
         expiration: document.getElementById('expiration').value || 'N/A'
     };
     pantry.push(item);
-    localStorage.setItem('pantry', JSON.stringify(pantry));
+    saveToLocalStorage('pantry', pantry);
     e.target.reset();
     displayPantry();
 });
@@ -67,7 +124,7 @@ function displayPantry() {
                 <input type="checkbox" class="select-item" data-index="${index}"/>
                 ${item.ingredient} - ${item.quantity}${item.unit} (${item.category}, Expires: ${item.expiration})
             </div>
-            <button class="delete-btn" data-index="${index}">Delete</button>
+            <button class="delete-btn" data-index="${index}">Delete🗑</button>
         `;
         list.appendChild(li);
     });
@@ -81,14 +138,18 @@ function displayPantry() {
             displayPantry();
         })
     );
+
+    // Update Recipes link state
+    updateRecipesLink();
 }
 
 // =================== Submit to Recipes ===================
 document.getElementById('submit-to-recipes')?.addEventListener('click', () => {
     const pantry = JSON.parse(localStorage.getItem('pantry') || '[]');
-    const selected = Array.from(document.querySelectorAll('.select-item:checked')).map(cb => pantry[cb.dataset.index]);
-    if (selected.length === 0) return alert('Please select at least one ingredient!');
-    localStorage.setItem('selectedIngredients', JSON.stringify(selected));
+    selectedIngredients = Array.from(document.querySelectorAll('.select-item:checked')).map(cb => pantry[cb.dataset.index]);
+    if (selectedIngredients.length === 0) return alert('Please select at least one ingredient!');
+    saveToLocalStorage('selectedIngredients', selectedIngredients);
+    updateRecipesLink();
     window.location.href = 'recipes.html';
 });
 
@@ -96,9 +157,16 @@ document.getElementById('submit-to-recipes')?.addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', () => {
     displayPantry();
 
-    const selectedIngredients = JSON.parse(localStorage.getItem('selectedIngredients') || '[]');
     const selectedIngredientsDiv = document.getElementById('selected-ingredients');
     const recipeResults = document.getElementById('recipe-results');
+
+    // Check if ingredients are selected, otherwise redirect to pantry
+    if (window.location.pathname.split('/').pop() === 'recipes.html' && selectedIngredients.length === 0) {
+        document.body.classList.add('redirecting');
+        alert('Please select ingredients from the Pantry first.');
+        setTimeout(() => { window.location.href = 'pantry.html'; }, 500);
+        return;
+    }
 
     if (selectedIngredientsDiv) {
         selectedIngredientsDiv.innerHTML = selectedIngredients.length
@@ -177,4 +245,18 @@ document.addEventListener('DOMContentLoaded', () => {
             recipeResults.innerHTML = '<p>❌ Error fetching recipes. Please try again later.</p>';
         }
     });
+
+    // Update Recipes link state
+    updateRecipesLink();
 });
+
+// =================== Logout Handling ===================
+const logoutLink = document.getElementById('logout-link');
+if (logoutLink) {
+    logoutLink.addEventListener('click', () => {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('selectedIngredients');
+        selectedIngredients = [];
+        window.location.href = 'index.html';
+    });
+}
