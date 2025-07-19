@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer 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',
+                    'Authorization': 'Bearer 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',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -259,4 +259,4 @@ if (logoutLink) {
         selectedIngredients = [];
         window.location.href = 'index.html';
     });
-}
+                                                           }
