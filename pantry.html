@@ -11,19 +11,22 @@
     <div class="container">
         <h1>🍎 Nutrition Tracker</h1>
         <div class="nav">
+            <div>
             <a href="pantry.html" class="active">Pantry</a>
+            </div>
             <a href="recipes.html">Recipes</a>
             <a href="index.html" id="logout-link">Logout</a>
         </div>
         <div class="pantry-box">
-            <h2>Your Pantry</h2>
+            <h2>🍒Pantry🍒</h2>
+               <p>Welcome, <span id="user-name"></span>!</p>
             <form id="pantry-form">
                 <div class="input-group">
-                    <label for="ingredient">Ingredient</label>
+                    <label for="ingredient">🥗Ingredient🥗</label>
                     <input type="text" id="ingredient" placeholder="e.g., Chicken Breast" required pattern="[A-Za-z\s]+">
                 </div>
                 <div class="input-group">
-                    <label for="quantity">Quantity</label>
+                    <label for="quantity">🍢Quanti🍢ty</label>
                     <input type="number" id="quantity" placeholder="e.g., 500" min="1" required>
                     <select id="unit">
                         <option value="g">grams</option>
@@ -33,7 +36,7 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label for="category">Category</label>
+                    <label for="category">🍡Catego🍡ry</label>
                     <select id="category">
                         <option value="protein">Protein</option>
                         <option value="vegetable">Vegetable</option>
@@ -43,16 +46,18 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label for="expiration">Expiration Date (Optional)</label>
+                    <label for="expiration">🍢Expiration Date (Optional)🍢</label>
                     <input type="date" id="expiration" min="">
                 </div>
-                <button type="submit" class="btn">Add Ingredient</button>
-            </form>
-            <button class="btn" id="submit-to-recipes">Submit Selected to Recipes</button>
+                <button type="submit" class="btn">Add Ingredient😋</button>
+            </form><br>
+            
             <div id="pantry-list">
-                <h3>Pantry Items</h3>
+                <h3>Pantry Items🍽</h3>
                 <ul id="ingredient-list"></ul>
+                <button class="btn" id="submit-to-recipes">Submit Selected to Recipes🍱</button>
             </div>
+            <h1>🍋🍐🍅</h1>
         </div>
     </div>
     <script src="script.js"></script>
